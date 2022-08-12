@@ -14,6 +14,8 @@ plugins {
     id 'application'
 
     id 'checkstyle'
+
+    id 'jacoco'
 }
 
 repositories {
@@ -31,6 +33,12 @@ dependencies {
 
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:31.0.1-jre'
+
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.24'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
 }
 
 application {
@@ -48,4 +56,26 @@ checkstyle {
     ignoreFailures = false
     maxWarnings = 0
     maxErrors = 0
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = 'BRANCH'
+                minimum = 0.9
+            }
+        }
+        rule {
+            limit {
+                counter = 'LINE'
+                minimum = 0.9
+            }
+        }
+    }
+}
+
+test {
+    finalizedBy jacocoTestReport
+    finalizedBy jacocoTestCoverageVerification
 }
