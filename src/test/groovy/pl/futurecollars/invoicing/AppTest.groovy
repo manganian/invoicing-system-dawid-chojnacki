@@ -7,7 +7,7 @@ import spock.lang.Specification
 
 class AppTest extends Specification {
 
-    def "simple test to cover main"() {
+    def "dummy test to cover main"() {
         setup:
         def app = new App()
 
