@@ -1,7 +1,9 @@
 package pl.futurecollars.invoicing.db.file;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -58,25 +60,29 @@ public class FileBasedDatabase implements Database {
 
   @Override
   public void update(int id, Invoice updatedInvoice) {
-    try {
-      List<String> allInvoices = filesService.readAllLines(databasePath);
-      var listWithoutInvoiceWithGivenId = allInvoices
-          .stream()
-          .filter(line -> !containsId(line, id))
-          .collect(Collectors.toList());
-
-      if (allInvoices.size() == listWithoutInvoiceWithGivenId.size()) {
-        throw new IllegalArgumentException("Id " + id + " does not exist");
-      }
-
-      updatedInvoice.setId(id);
-      listWithoutInvoiceWithGivenId.add(jsonService.toJson(updatedInvoice));
-
-      filesService.writeLinesToFile(databasePath, listWithoutInvoiceWithGivenId);
-
-    } catch (IOException ex) {
-      throw new RuntimeException("Failed to update invoice with id: " + id, ex);
+    if (getById(id).isEmpty()) {
+      throw new IllegalArgumentException("Id " + id + " does not exist");
     }
+    updatedInvoice.setId(id);
+    String updatedInvoiceAsString = jsonService.toJson(updatedInvoice).trim();
+
+    try {
+      String ivoicesAsString = Files.readAllLines(databasePath)
+          .stream()
+          .map(invoice -> updatedInvoice(invoice, id, updatedInvoiceAsString))
+          .collect(Collectors.joining("\n"));
+      Files.writeString(databasePath, ivoicesAsString, StandardOpenOption.TRUNCATE_EXISTING);
+    } catch (IOException exception) {
+      throw new RuntimeException("Updating invoice failed");
+    }
+  }
+
+  private boolean findById(String line, int id) {
+    return line.contains("\"id\":" + id + ",");
+  }
+
+  private String updatedInvoice(String oldInvoiceAsString, int id, String updatedInvoiceAsString) {
+    return findById(oldInvoiceAsString, id) ? updatedInvoiceAsString : oldInvoiceAsString;
   }
 
   @Override

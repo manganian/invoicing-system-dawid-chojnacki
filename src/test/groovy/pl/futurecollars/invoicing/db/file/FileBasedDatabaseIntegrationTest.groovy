@@ -40,7 +40,7 @@ class FileBasedDatabaseIntegrationTest extends AbstractDatabaseTest {
         2 == Files.readAllLines(dbPath).size()
     }
 
-    def "should return exception when can't interact with the database file"() {
+    def "should return exception when can't save invoice"() {
 
         given:
         def db = getDatabaseInstance()
@@ -52,6 +52,13 @@ class FileBasedDatabaseIntegrationTest extends AbstractDatabaseTest {
         then:
         RuntimeException exception = thrown(RuntimeException)
         exception.message == "Database failed to save invoice"
+    }
+
+    def "should return exception when can't get invoice"() {
+
+        given:
+        def db = getDatabaseInstance()
+        Files.deleteIfExists(dbPath)
 
         when:
         db.getById(2)
@@ -59,6 +66,13 @@ class FileBasedDatabaseIntegrationTest extends AbstractDatabaseTest {
         then:
         RuntimeException exception2 = thrown(RuntimeException)
         exception2.message == "Database failed to get invoice with id: 2"
+    }
+
+    def "should return exception when can't get all invoices"() {
+
+        given:
+        def db = getDatabaseInstance()
+        Files.deleteIfExists(dbPath)
 
         when:
         db.getAll()
@@ -66,19 +80,19 @@ class FileBasedDatabaseIntegrationTest extends AbstractDatabaseTest {
         then:
         RuntimeException exception3 = thrown(RuntimeException)
         exception3.message == "Failed to read invoices from file"
+    }
 
-        when:
-        db.update(4, TestHelpers.invoice(4))
+    def "should return exception when can't delete invoice"() {
 
-        then:
-        RuntimeException exception4 = thrown(RuntimeException)
-        exception4.message == "Failed to update invoice with id: 4"
+        given:
+        def db = getDatabaseInstance()
+        Files.deleteIfExists(dbPath)
 
         when:
         db.delete(82)
 
         then:
-        RuntimeException exception5 = thrown(RuntimeException)
-        exception5.message == "Failed to delete invoice with id: 82"
+        RuntimeException exception4 = thrown(RuntimeException)
+        exception4.message == "Failed to delete invoice with id: 82"
     }
 }
