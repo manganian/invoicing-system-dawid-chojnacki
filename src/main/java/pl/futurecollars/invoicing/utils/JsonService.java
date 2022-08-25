@@ -3,6 +3,9 @@ package pl.futurecollars.invoicing.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import java.util.ArrayList;
+import java.util.List;
+import pl.futurecollars.invoicing.model.Invoice;
 
 public class JsonService {
 
@@ -28,5 +31,13 @@ public class JsonService {
     } catch (JsonProcessingException e) {
       throw new RuntimeException("Failed to parse JSON", e);
     }
+  }
+
+  public List<String> allInvoicesToJson(List<Invoice> invoices) {
+    List<String> allInvoices = new ArrayList<>();
+    for (Invoice invoice : invoices) {
+      allInvoices.add(toJson(invoice));
+    }
+    return allInvoices;
   }
 }
