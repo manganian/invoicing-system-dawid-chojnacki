@@ -58,22 +58,25 @@ public class FileBasedDatabase implements Database {
 
   @Override
   public void update(int id, Invoice invoiceForUpdating) {
-    if (getById(id).isPresent()) {
+    try {
+      List<String> allInvoices = filesService.readAllLines(databasePath);
+      String toUpdate = allInvoices.stream()
+          .filter(line -> containsId(line, id))
+          .findFirst()
+          .orElseThrow(() -> new IllegalArgumentException("Id " + id + " does not exist"));
 
-      invoiceForUpdating.setId(id);
+      allInvoices.remove(toUpdate);
+      Invoice invoice = jsonService.toObject(toUpdate, Invoice.class);
+      invoice.setDate(invoiceForUpdating.getDate());
+      invoice.setSeller(invoiceForUpdating.getSeller());
+      invoice.setBuyer(invoiceForUpdating.getBuyer());
+      invoice.setEntries(invoiceForUpdating.getEntries());
 
-      List<Invoice> updatedInvoices = getAll()
-          .stream()
-          .map(invoice -> invoice.getId() == id ? invoiceForUpdating : invoice)
-          .collect(Collectors.toList());
+      allInvoices.add(jsonService.toJson(invoice));
 
-      try {
-        filesService.writeLinesToFile(databasePath, jsonService.allInvoicesToJson(updatedInvoices));
-      } catch (IOException e) {
-        throw new RuntimeException("Fail to updating invoice with id: " + id, e);
-      }
-    } else {
-      throw new IllegalArgumentException("Id " + id + " does not exist");
+      filesService.writeLinesToFile(databasePath, allInvoices);
+    } catch (IOException exception) {
+      throw new RuntimeException("Failed to update invoice with id: " + id, exception);
     }
   }
 

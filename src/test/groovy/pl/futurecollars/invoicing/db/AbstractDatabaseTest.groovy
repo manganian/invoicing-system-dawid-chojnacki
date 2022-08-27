@@ -69,13 +69,15 @@ abstract class AbstractDatabaseTest extends Specification {
 
     def "it's possible to update the invoice"() {
         given:
-        int id = database.save(invoices.get(0))
+        int id = database.save(invoices.get(1))
+        def invoice2 = invoices.get(2)
+        invoice2.setId(1)
 
         when:
-        database.update(id, invoices.get(1))
+        database.update(id, invoice2)
 
         then:
-        database.getById(id).get() == invoices.get(1)
+        database.getById(id).get() == invoice2
     }
 
     def "updating not existing invoice throws exception"() {
