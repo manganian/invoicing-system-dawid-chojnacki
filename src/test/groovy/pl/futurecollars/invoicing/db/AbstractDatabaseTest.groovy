@@ -1,22 +1,17 @@
-package pl.futurecollars.invoicing.db.memory
+package pl.futurecollars.invoicing.db
 
-import pl.futurecollars.invoicing.db.Database
-import pl.futurecollars.invoicing.db.memory.InMemoryDatabase
 import pl.futurecollars.invoicing.model.Invoice
 import spock.lang.Specification
 
 import static pl.futurecollars.invoicing.TestHelpers.invoice
 
-class InMemoryDatabaseTest extends Specification {
+abstract class AbstractDatabaseTest extends Specification {
 
-    private Database database
-    private List<Invoice> invoices
+    List<Invoice> invoices = (1..12).collect { invoice(it) }
+    Database database = getDatabaseInstance()
 
-    def setup() {
-        database = new InMemoryDatabase()
+    abstract Database getDatabaseInstance()
 
-        invoices = (1..12).collect { invoice(it) }
-    }
 
     def "should save invoices returning sequential id, invoice should have id set to correct value, get by id returns saved invoice"() {
         when:
@@ -74,13 +69,15 @@ class InMemoryDatabaseTest extends Specification {
 
     def "it's possible to update the invoice"() {
         given:
-        int id = database.save(invoices.get(0))
+        int id = database.save(invoices.get(1))
+        def invoice2 = invoices.get(2)
+        invoice2.setId(1)
 
         when:
-        database.update(id, invoices.get(1))
+        database.update(id, invoice2)
 
         then:
-        database.getById(id).get() == invoices.get(1)
+        database.getById(id).get() == invoice2
     }
 
     def "updating not existing invoice throws exception"() {
