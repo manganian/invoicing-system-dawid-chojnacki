@@ -25,11 +25,20 @@ public class InvoiceService {
     return database.getAll();
   }
 
-  public void update(int id, Invoice updatedInvoice) {
-    database.update(id, updatedInvoice);
+  public boolean update(int id, Invoice updatedInvoice) {
+    if (database.getById(id).isPresent()) {
+      database.update(id, updatedInvoice);
+      return true;
+    }
+    return false;
   }
 
-  public void delete(int id) {
-    database.delete(id);
+  public boolean delete(int id) {
+    if (database.getById(id).isPresent()) {
+      database.delete(id);
+      return true;
+    }
+    return false;
   }
 }
+

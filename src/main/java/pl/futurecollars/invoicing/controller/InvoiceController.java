@@ -16,7 +16,7 @@ import pl.futurecollars.invoicing.service.InvoiceService;
 
 @RestController
 @RequestMapping("invoices")
-public class InvoiceController {
+class InvoiceController {
 
   InvoiceService invoiceService = new InvoiceService(new InMemoryDatabase());
 
@@ -25,20 +25,20 @@ public class InvoiceController {
     return ResponseEntity.ok(invoiceService.getAll());
   }
 
-  @GetMapping ("/{id}")
+  @GetMapping("/{id}")
   public ResponseEntity<Invoice> getById(@PathVariable int id) {
     return ResponseEntity.of(invoiceService.getById(id));
   }
 
-  @PostMapping()
+  @PostMapping
   public ResponseEntity<Integer> saveInvoice(@RequestBody Invoice invoice) {
-    return ResponseEntity.ok(invoiceService.save(invoice));
+    invoiceService.save(invoice);
+    return ResponseEntity.status(201).build();
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<?> delete(@PathVariable int id) {
-    if (invoiceService.getById(id).isPresent()) {
-      invoiceService.delete(id);
+    if (invoiceService.delete(id)) {
       return ResponseEntity.noContent().build();
     } else {
       return ResponseEntity.notFound().build();
