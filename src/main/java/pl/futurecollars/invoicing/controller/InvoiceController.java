@@ -47,8 +47,7 @@ class InvoiceController {
 
   @PutMapping("/{id}")
   public ResponseEntity<?> update(@PathVariable int id, @RequestBody Invoice invoice) {
-    if (invoiceService.getById(id).isPresent()) {
-      invoiceService.update(id, invoice);
+    if (invoiceService.update(id, invoice)) {
       return ResponseEntity.ok().build();
     } else {
       return ResponseEntity.notFound().build();
