@@ -16,9 +16,9 @@ import pl.futurecollars.invoicing.service.InvoiceService;
 
 @RestController
 @RequestMapping("invoices")
-class InvoiceController {
+public class InvoiceController {
 
-  InvoiceService invoiceService = new InvoiceService(new InMemoryDatabase());
+  private final InvoiceService invoiceService = new InvoiceService(new InMemoryDatabase());
 
   @GetMapping
   public ResponseEntity<List<Invoice>> getAll() {
