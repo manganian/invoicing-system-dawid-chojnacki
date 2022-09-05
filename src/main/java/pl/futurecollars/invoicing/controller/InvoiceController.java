@@ -2,6 +2,7 @@ package pl.futurecollars.invoicing.controller;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,20 +26,19 @@ class InvoiceController {
     this.invoiceService = invoiceService;
   }
 
-  @GetMapping
+  @GetMapping(produces = { "application/json;charset=UTF-8" })
   public ResponseEntity<List<Invoice>> getAll() {
     return ResponseEntity.ok(invoiceService.getAll());
   }
 
-  @GetMapping("/{id}")
+  @GetMapping(value = "/{id}", produces = { "application/json;charset=UTF-8" })
   public ResponseEntity<Invoice> getById(@PathVariable int id) {
     return ResponseEntity.of(invoiceService.getById(id));
   }
 
   @PostMapping
   public ResponseEntity<Integer> saveInvoice(@RequestBody Invoice invoice) {
-    invoiceService.save(invoice);
-    return ResponseEntity.status(201).build();
+    return new ResponseEntity<Integer>(invoiceService.save(invoice), HttpStatus.CREATED);
   }
 
   @DeleteMapping("/{id}")
@@ -53,7 +53,7 @@ class InvoiceController {
   @PutMapping("/{id}")
   public ResponseEntity<?> update(@PathVariable int id, @RequestBody Invoice invoice) {
     if (invoiceService.update(id, invoice)) {
-      return ResponseEntity.ok().build();
+      return ResponseEntity.noContent().build();
     } else {
       return ResponseEntity.notFound().build();
     }
