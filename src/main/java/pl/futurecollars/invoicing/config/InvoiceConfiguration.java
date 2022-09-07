@@ -17,9 +17,9 @@ import pl.futurecollars.invoicing.utils.JsonService;
 @Configuration
 public class InvoiceConfiguration {
 
-  public static final String INVOICES_FILE_NAME = "invoices.json";
-  public static final String ID_FILE_NAME = "id.txt";
-  public static final String DATABASE_LOCATION = "db";
+  private static final String INVOICES_FILE_NAME = "invoices.json";
+  private static final String ID_FILE_NAME = "id.txt";
+  private static final String DATABASE_LOCATION = "db";
 
   @Bean
   public JsonService jsonService() {
