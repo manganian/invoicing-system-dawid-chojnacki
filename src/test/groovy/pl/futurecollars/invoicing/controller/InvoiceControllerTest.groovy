@@ -4,23 +4,25 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.ResultActions
 import pl.futurecollars.invoicing.model.Invoice
-import pl.futurecollars.invoicing.TestHelpers
 import pl.futurecollars.invoicing.utils.JsonService
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import static pl.futurecollars.invoicing.TestHelpers.invoice
 
-@SpringBootTest
 @AutoConfigureMockMvc
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@SpringBootTest
 @Unroll
-class InvoiceControllerTest extends Specification {
+class InvoiceControllerIntegrationTest extends Specification {
+
+    private static final String ENDPOINT = "/invoices"
 
     @Autowired
     private MockMvc mockMvc
@@ -28,33 +30,149 @@ class InvoiceControllerTest extends Specification {
     @Autowired
     private JsonService jsonService
 
-    private static final ENDPOINT = "/invoices"
-
-    def cleanup() {
-        deleteAllInvoices()
+    def setup() {
+        getAllInvoices().each { invoice -> deleteInvoice(invoice.id) }
     }
 
-    private int addOneInvoice(Invoice invoice) {
-        def invoiceAsJsonString = jsonService.toJson(invoice)
+    def "empty array is returned when no invoices were added"() {
+        expect:
+        getAllInvoices() == []
+    }
 
-        String id = mockMvc.perform(post(ENDPOINT)
-                .content(invoiceAsJsonString)
-                .contentType(MediaType.APPLICATION_JSON)
+    def "add invoice returns sequential id"() {
+        given:
+        def invoiceAsJson = invoiceAsJson(1)
+
+        expect:
+        def firstId = addInvoiceAndReturnId(invoiceAsJson)
+        addInvoiceAndReturnId(invoiceAsJson) == firstId + 1
+        addInvoiceAndReturnId(invoiceAsJson) == firstId + 2
+        addInvoiceAndReturnId(invoiceAsJson) == firstId + 3
+        addInvoiceAndReturnId(invoiceAsJson) == firstId + 4
+    }
+
+    def "all invoices are returned when getting all invoices"() {
+        given:
+        def numberOfInvoices = 3
+        def expectedInvoices = addUniqueInvoices(numberOfInvoices)
+
+        when:
+        def invoices = getAllInvoices()
+
+        then:
+        invoices.size() == numberOfInvoices
+        invoices == expectedInvoices
+    }
+
+    def "correct invoice is returned when getting by id"() {
+        given:
+        def expectedInvoices = addUniqueInvoices(5)
+        def verifiedInvoice = expectedInvoices.get(2)
+
+        when:
+        def invoice = getInvoiceById(verifiedInvoice.getId())
+
+        then:
+        invoice == verifiedInvoice
+    }
+
+    def "404 is returned when invoice id is not found when getting invoice by id [#id]"() {
+        given:
+        addUniqueInvoices(2)
+
+        expect:
+        mockMvc.perform(
+                get("$ENDPOINT/$id")
         )
-                .andExpect(status().isCreated())
+                .andExpect(status().isNotFound())
+
+        where:
+        id << [-100, -2, -1, 0, 3, 168, 1256]
+    }
+
+    def "404 is returned when invoice id is not found when deleting invoice [#id]"() {
+        given:
+        addUniqueInvoices(11)
+
+        expect:
+        mockMvc.perform(
+                delete("$ENDPOINT/$id")
+        )
+                .andExpect(status().isNotFound())
+
+        where:
+        id << [-100, -2, -1, 0, 12, 13, 99, 102, 1000]
+    }
+
+    def "404 is returned when invoice id is not found when updating invoice [#id]"() {
+        given:
+        addUniqueInvoices(11)
+
+        expect:
+        mockMvc.perform(
+                put("$ENDPOINT/$id")
+                        .content(invoiceAsJson(1))
+                        .contentType(MediaType.APPLICATION_JSON)
+        )
+                .andExpect(status().isNotFound())
+
+        where:
+        id << [-100, -2, -1, 0, 12, 13, 99, 102, 1000]
+    }
+
+    def "invoice date can be modified"() {
+        given:
+        def id = addInvoiceAndReturnId(invoiceAsJson(8))
+        def updatedInvoice = invoice(123)
+        updatedInvoice.id = id
+
+        expect:
+        mockMvc.perform(
+                put("$ENDPOINT/$id")
+                        .content(jsonService.toJson(updatedInvoice))
+                        .contentType(MediaType.APPLICATION_JSON)
+        )
+                .andExpect(status().isNoContent())
+
+        getInvoiceById(id) == updatedInvoice
+    }
+
+    def "invoice can be deleted"() {
+        given:
+        def invoices = addUniqueInvoices(7)
+
+        expect:
+        invoices.each { invoice -> deleteInvoice(invoice.getId()) }
+        getAllInvoices().size() == 0
+    }
+
+    private ResultActions deleteInvoice(int id) {
+        mockMvc.perform(delete("$ENDPOINT/$id"))
+                .andExpect(status().isNoContent())
+    }
+
+    private int addInvoiceAndReturnId(String invoiceAsJson) {
+        Integer.valueOf(
+                mockMvc.perform(
+                        post(ENDPOINT)
+                                .content(invoiceAsJson)
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                        .andExpect(status().isCreated())
+                        .andReturn()
+                        .response
+                        .contentAsString
+        )
+    }
+
+    private Invoice getInvoiceById(int id) {
+        def invoiceAsString = mockMvc.perform(get("$ENDPOINT/$id"))
+                .andExpect(status().isOk())
                 .andReturn()
                 .response
-                .getContentAsString()
+                .contentAsString
 
-        return id as int
-    }
-
-    private List<Invoice> addInvoices(int howMany) {
-        (1..howMany).collect({ id ->
-            def invoice = TestHelpers.invoice(id)
-            invoice.id = addOneInvoice(invoice)
-            return invoice
-        })
+        jsonService.toObject(invoiceAsString, Invoice)
     }
 
     private List<Invoice> getAllInvoices() {
@@ -62,155 +180,21 @@ class InvoiceControllerTest extends Specification {
                 .andExpect(status().isOk())
                 .andReturn()
                 .response
-                .getContentAsString()
+                .contentAsString
 
         return jsonService.toObject(response, Invoice[])
     }
 
-    private Invoice getInvoiceById(int id) {
-        def response = mockMvc.perform(get("$ENDPOINT/$id"))
-                .andExpect(status().isOk())
-                .andReturn()
-                .response
-                .getContentAsString()
-        return jsonService.toObject(response, Invoice)
+    private List<Invoice> addUniqueInvoices(int count) {
+        (1..count).collect { id ->
+            def invoice = invoice(id)
+            invoice.id = id
+            addInvoiceAndReturnId(jsonService.toJson(invoice))
+            return invoice
+        }
     }
 
-    private void deleteInvoice(int id) {
-        mockMvc.perform(delete("$ENDPOINT/$id"))
-                .andExpect(status().isNoContent())
-    }
-
-    private void deleteAllInvoices() {
-        getAllInvoices().each { invoice -> deleteInvoice(invoice.id) }
-    }
-
-    def "empty array is returned when no invoices were created"() {
-        expect:
-        getAllInvoices() == []
-    }
-
-    def "one invoice is successfully added to the database"() {
-        given:
-        Invoice invoiceToAdd = TestHelpers.invoice(5)
-
-        when:
-        def id = addOneInvoice(invoiceToAdd)
-        invoiceToAdd.id = id
-
-        then:
-        getAllInvoices().size() > 0
-        getAllInvoices().get(0) == invoiceToAdd
-    }
-
-    def "more than one invoice is successfully added to the database"() {
-        when:
-        List<Invoice> invoicesToAdd = addInvoices(8)
-
-        then:
-        invoicesToAdd.size() == getAllInvoices().size()
-        invoicesToAdd == getAllInvoices()
-    }
-
-    def "returns correct ids when invoices added"() {
-        given:
-        def invoiceToAdd = TestHelpers.invoice(1)
-
-        expect:
-        def id = addOneInvoice(invoiceToAdd)
-        addOneInvoice(invoiceToAdd) == id + 1
-        addOneInvoice(invoiceToAdd) == id + 2
-        addOneInvoice(invoiceToAdd) == id + 3
-        addOneInvoice(invoiceToAdd) == id + 4
-        addOneInvoice(invoiceToAdd) == id + 5
-    }
-
-    def "getting existing invoice by id returns appropriate invoice"() {
-        when:
-        List<Invoice> invoicesToAdd = addInvoices(11)
-        Invoice invoiceToFind = invoicesToAdd.get(7)
-
-        then:
-        getInvoiceById(invoiceToFind.getId()) == invoiceToFind
-    }
-
-    def "returns 404 not found status when trying to get invoice by non-existent id [#id]"() {
-        given:
-        addInvoices(9)
-
-        expect:
-        mockMvc.perform(get("$ENDPOINT/$id"))
-                .andExpect(status().isNotFound())
-
-        where:
-        id << [-88, -1, 0, 27, 119]
-    }
-
-    def "one invoice is successfully deleted from the database"() {
-        given:
-        List<Invoice> invoicesToAdd = addInvoices(100)
-        Invoice invoiceTODelete = invoicesToAdd.get(0)
-        getAllInvoices().size() == 100
-
-        when:
-        deleteInvoice(invoiceTODelete.getId())
-
-        then:
-        getAllInvoices().size() == 99
-    }
-
-    def "all invoices are successfully deleted from the database"() {
-        given:
-        addInvoices(40)
-        getAllInvoices().size() == 40
-
-        when:
-        deleteAllInvoices()
-
-        then:
-        getAllInvoices().size() == 0
-    }
-
-    def "returns 404 not found status when trying to delete invoice by non-existent id [#id]"() {
-        given:
-        addInvoices(8)
-
-        expect:
-        mockMvc.perform(delete("$ENDPOINT/$id"))
-                .andExpect(status().isNotFound())
-
-        where:
-        id << [-99, -1, 0, 123, 228]
-    }
-
-    def "invoice is successfully updated"() {
-        given:
-        def id = addOneInvoice(TestHelpers.invoice(1))
-        def updatedInvoice = TestHelpers.invoice(52)
-        updatedInvoice.id = id
-        def updatedInvoiceAsJson = jsonService.toJson(updatedInvoice)
-
-        expect:
-        mockMvc.perform(put("$ENDPOINT/$id")
-                .content(updatedInvoiceAsJson)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNoContent())
-
-        getInvoiceById(id) == updatedInvoice
-    }
-
-    def "returns 404 not found status when trying to update invoice by non-existent id [#id]"() {
-        given:
-        addInvoices(10)
-        def updatedInvoice = jsonService.toJson(TestHelpers.invoice(9))
-
-        expect:
-        mockMvc.perform(put("$ENDPOINT/$id")
-                .content(updatedInvoice)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-
-        where:
-        id << [-77, -1, 0, 303, 410]
+    private String invoiceAsJson(int id) {
+        jsonService.toJson(invoice(id))
     }
 }
