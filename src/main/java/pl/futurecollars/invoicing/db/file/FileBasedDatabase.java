@@ -36,8 +36,8 @@ public class FileBasedDatabase implements Database {
     try {
       return filesService.readAllLines(databasePath)
           .stream()
-          .filter(line -> containsId(line, id))
           .map(line -> jsonService.toObject(line, Invoice.class))
+          .filter(object -> object.getId() == id)
           .findFirst();
     } catch (IOException ex) {
       throw new RuntimeException("Database failed to get invoice with id: " + id, ex);
@@ -61,7 +61,7 @@ public class FileBasedDatabase implements Database {
     try {
       List<String> allInvoices = filesService.readAllLines(databasePath);
       String toUpdate = allInvoices.stream()
-          .filter(line -> containsId(line, id))
+          .filter(line -> jsonService.toObject(line, Invoice.class).getId() == id)
           .findFirst()
           .orElseThrow(() -> new IllegalArgumentException("Id " + id + " does not exist"));
 
@@ -85,7 +85,7 @@ public class FileBasedDatabase implements Database {
     try {
       var updatedList = filesService.readAllLines(databasePath)
           .stream()
-          .filter(line -> !containsId(line, id))
+          .filter(line -> jsonService.toObject(line, Invoice.class).getId() != id)
           .collect(Collectors.toList());
 
       filesService.writeLinesToFile(databasePath, updatedList);
@@ -93,9 +93,5 @@ public class FileBasedDatabase implements Database {
     } catch (IOException ex) {
       throw new RuntimeException("Failed to delete invoice with id: " + id, ex);
     }
-  }
-
-  private boolean containsId(String line, int id) {
-    return line.contains("\"id\":" + id + ",");
   }
 }

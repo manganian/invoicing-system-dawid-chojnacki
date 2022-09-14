@@ -17,7 +17,7 @@ import pl.futurecollars.invoicing.service.InvoiceService;
 
 @RestController
 @RequestMapping("invoices")
-class InvoiceController {
+public class InvoiceController {
 
   private final InvoiceService invoiceService;
 
@@ -26,12 +26,12 @@ class InvoiceController {
     this.invoiceService = invoiceService;
   }
 
-  @GetMapping
+  @GetMapping(produces = { "application/json;charset=UTF-8" })
   public ResponseEntity<List<Invoice>> getAll() {
     return ResponseEntity.ok(invoiceService.getAll());
   }
 
-  @GetMapping("/{id}")
+  @GetMapping(value = "/{id}", produces = { "application/json;charset=UTF-8" })
   public ResponseEntity<Invoice> getById(@PathVariable int id) {
     return ResponseEntity.of(invoiceService.getById(id));
   }

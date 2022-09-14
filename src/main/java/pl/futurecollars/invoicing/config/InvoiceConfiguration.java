@@ -27,7 +27,7 @@ public class InvoiceConfiguration {
   }
 
   @Bean
-  public FilesService fileService() {
+  public FilesService filesService() {
     return new FilesService();
   }
 
