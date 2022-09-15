@@ -1,3 +1,14 @@
+buildscript {
+    ext {
+        jacksonVersion = '2.11.1'
+        lombokVersion = '1.18.20'
+        spockVersion = '2.0-M4-groovy-3.0'
+        springBootVersion = '2.5.2'
+        springFoxStarterVersion = '3.0.0'
+        springFoxUiVersion = '3.0.0'
+    }
+}
+
 plugins {
     // Apply the groovy plugin to also add support for Groovy (needed for Spock)
     id 'groovy'
@@ -5,7 +16,7 @@ plugins {
     id 'application'
     id 'checkstyle'
     id 'jacoco'
-    id 'org.springframework.boot' version '2.7.3'
+    id 'org.springframework.boot' version "${springBootVersion}"
     id 'io.spring.dependency-management' version '1.0.13.RELEASE'
     id 'java'
 }
@@ -38,6 +49,8 @@ dependencies {
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:31.0.1-jre'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation "io.springfox:springfox-boot-starter:${springFoxStarterVersion}"
+    implementation "io.springfox:springfox-swagger-ui:${springFoxUiVersion}"
 
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
