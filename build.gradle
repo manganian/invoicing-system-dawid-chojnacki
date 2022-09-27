@@ -63,13 +63,13 @@ jacocoTestCoverageVerification {
         rule {
             limit {
                 counter = 'BRANCH'
-                minimum = 0.85
+                minimum = 0.7
             }
         }
         rule {
             limit {
                 counter = 'LINE'
-                minimum = 0.85
+                minimum = 0.7
             }
         }
     }
@@ -81,7 +81,6 @@ java {
         vendor = JvmVendorSpec.ADOPTOPENJDK
     }
 }
-
 
 test {
     finalizedBy jacocoTestReport

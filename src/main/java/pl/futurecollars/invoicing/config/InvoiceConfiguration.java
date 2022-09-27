@@ -38,6 +38,7 @@ public class InvoiceConfiguration {
   @Bean
   public Database inMemoryDatabase() {
     log.info("ładuję bazę pamieciową");
+    log.debug("ładuję bazę pamieciową");
     return new InMemoryDatabase();
   }
 
