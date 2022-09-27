@@ -3,7 +3,9 @@ package pl.futurecollars.invoicing.config;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import pl.futurecollars.invoicing.db.Database;
@@ -14,6 +16,7 @@ import pl.futurecollars.invoicing.service.InvoiceService;
 import pl.futurecollars.invoicing.utils.FilesService;
 import pl.futurecollars.invoicing.utils.JsonService;
 
+@Slf4j
 @Configuration
 public class InvoiceConfiguration {
 
@@ -31,13 +34,15 @@ public class InvoiceConfiguration {
     return new FilesService();
   }
 
+  @ConditionalOnProperty(name = "database.type", havingValue = "in-memory")
   @Bean
-  public InMemoryDatabase inMemoryDatabase() {
+  public Database inMemoryDatabase() {
+    log.info("ładuję bazę pamieciową");
     return new InMemoryDatabase();
   }
 
   @Bean
-  public InvoiceService invoiceService(@Qualifier("fileBasedDatabase") Database database) {
+  public InvoiceService invoiceService(Database database) {
     return new InvoiceService(database);
   }
 
@@ -47,8 +52,15 @@ public class InvoiceConfiguration {
     return new IdService(idFilePath, filesService);
   }
 
+  @ConditionalOnProperty(name = "database.type", havingValue = "file")
   @Bean
-  public Database fileBasedDatabase(IdService idService, FilesService filesService, JsonService jsonService) throws IOException {
+  public Database fileBasedDatabase(IdService idService, FilesService filesService, JsonService jsonService,
+                                    @Value("${database.path:/db/defaultDb.json}") String databasePath) throws IOException {
+    log.info("ładuję bazę plikową");
+    log.debug(databasePath);
+    log.warn(databasePath);
+    log.error(databasePath);
+    log.trace(databasePath);
     Path databaseFilePath = Files.createTempFile(DATABASE_LOCATION, INVOICES_FILE_NAME);
     return new FileBasedDatabase(databaseFilePath, idService, filesService, jsonService);
   }
