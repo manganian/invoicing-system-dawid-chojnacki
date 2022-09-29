@@ -16,7 +16,7 @@ class TestHelpers {
     }
 
     static product(int id) {
-        new InvoiceEntry("Butter $id", BigDecimal.valueOf(id * 10), BigDecimal.valueOf(id * 10 * 0.23), Vat.VAT_23)
+        new InvoiceEntry("Butter $id", 1, BigDecimal.valueOf(id * 10), BigDecimal.valueOf(id * 10 * 0.23), Vat.VAT_23)
     }
 
     static invoice(int id) {
