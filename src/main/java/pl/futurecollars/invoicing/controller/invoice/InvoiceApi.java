@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import pl.futurecollars.invoicing.model.Invoice;
 
 @RequestMapping ("invoices")
-@Api (tags = {"invoices"})
+@Api (tags = {"invoice-controller"})
 public interface InvoiceApi {
 
   @ApiOperation(value = "Add new invoice to system")
