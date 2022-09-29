@@ -19,6 +19,7 @@ public class IdService {
     try {
       List<String> lines = filesService.readAllLines(idFilePath);
       if (lines.isEmpty()) {
+        // inicjalizujemy id database wartocia 1
         filesService.writeToFile(idFilePath, "1");
       } else {
         nextId = Integer.parseInt(lines.get(0));
