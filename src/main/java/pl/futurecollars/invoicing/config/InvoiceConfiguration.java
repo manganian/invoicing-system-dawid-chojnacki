@@ -26,11 +26,13 @@ public class InvoiceConfiguration {
 
   @Bean
   public JsonService jsonService() {
+    log.info("Creating jsonService");
     return new JsonService();
   }
 
   @Bean
   public FilesService filesService() {
+    log.info("Creating filesService");
     return new FilesService();
   }
 
