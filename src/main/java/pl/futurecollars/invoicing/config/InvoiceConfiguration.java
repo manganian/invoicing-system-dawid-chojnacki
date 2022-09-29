@@ -25,13 +25,17 @@ public class InvoiceConfiguration {
   private static final String ID_FILE_NAME = "id.txt";
   private static final String DATABASE_LOCATION = "db";
 
+  @ConditionalOnProperty(name = "database.type", havingValue = "file")
   @Bean
   public JsonService jsonService() {
+    log.info("Creating jsonService");
     return new JsonService();
   }
 
+  @ConditionalOnProperty(name = "database.type", havingValue = "file")
   @Bean
   public FilesService filesService() {
+    log.info("Creating filesService");
     return new FilesService();
   }
 
