@@ -59,9 +59,11 @@ checkstyle {
 
 jacocoTestCoverageVerification {
 
+
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: 'pl/futurecollars/invoicing/controller/tax')
+            fileTree(dir: it, exclude:  [ 'pl/futurecollars/invoicing/controller/tax/*',
+                                          'pl/futurecollars/invoicing/service/TaxCalculatorService.class'])
         }))
     }
 
@@ -69,13 +71,13 @@ jacocoTestCoverageVerification {
         rule {
             limit {
                 counter = 'BRANCH'
-                minimum = 0.8
+                minimum = 0.85
             }
         }
         rule {
             limit {
                 counter = 'LINE'
-                minimum = 0.8
+                minimum = 0.85
             }
         }
     }
