@@ -50,6 +50,7 @@ public class InvoiceConfiguration {
     return new InvoiceService(database);
   }
 
+  @ConditionalOnProperty(name = "database.type", havingValue = "file")
   @Bean
   public IdService idService(FilesService filesService) throws IOException {
     Path idFilePath = Files.createTempFile(DATABASE_LOCATION, ID_FILE_NAME);
