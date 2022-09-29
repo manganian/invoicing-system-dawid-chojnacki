@@ -37,8 +37,7 @@ public class InvoiceConfiguration {
   @ConditionalOnProperty(name = "database.type", havingValue = "in-memory")
   @Bean
   public Database inMemoryDatabase() {
-    log.info("ładuję bazę pamieciową");
-    log.debug("ładuję bazę pamieciową");
+    log.info("loading in-memory database");
     return new InMemoryDatabase();
   }
 
@@ -57,11 +56,9 @@ public class InvoiceConfiguration {
   @Bean
   public Database fileBasedDatabase(IdService idService, FilesService filesService, JsonService jsonService,
                                     @Value("${database.path:/db/defaultDb.json}") String databasePath) throws IOException {
-    log.info("ładuję bazę plikową");
+    log.info("loading filebased database");
     log.debug(databasePath);
-    log.warn(databasePath);
-    log.error(databasePath);
-    log.trace(databasePath);
+
     Path databaseFilePath = Files.createTempFile(DATABASE_LOCATION, INVOICES_FILE_NAME);
     return new FileBasedDatabase(databaseFilePath, idService, filesService, jsonService);
   }
