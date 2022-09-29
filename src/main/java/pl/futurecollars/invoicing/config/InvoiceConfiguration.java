@@ -11,6 +11,7 @@ import pl.futurecollars.invoicing.db.file.FileBasedDatabase;
 import pl.futurecollars.invoicing.db.file.IdService;
 import pl.futurecollars.invoicing.db.memory.InMemoryDatabase;
 import pl.futurecollars.invoicing.service.InvoiceService;
+import pl.futurecollars.invoicing.service.TaxCalculatorService;
 import pl.futurecollars.invoicing.utils.FilesService;
 import pl.futurecollars.invoicing.utils.JsonService;
 
@@ -51,5 +52,10 @@ public class InvoiceConfiguration {
   public Database fileBasedDatabase(IdService idService, FilesService filesService, JsonService jsonService) throws IOException {
     Path databaseFilePath = Files.createTempFile(DATABASE_LOCATION, INVOICES_FILE_NAME);
     return new FileBasedDatabase(databaseFilePath, idService, filesService, jsonService);
+  }
+
+  @Bean
+  public TaxCalculatorService taxCalculatorService(Database database) {
+    return new TaxCalculatorService(database);
   }
 }
