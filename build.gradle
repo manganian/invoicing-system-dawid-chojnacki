@@ -77,11 +77,10 @@ jacocoTestCoverageVerification {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(15)
+        languageVersion = JavaLanguageVersion.of(14)
         vendor = JvmVendorSpec.ADOPTOPENJDK
     }
 }
-
 
 test {
     finalizedBy jacocoTestReport
