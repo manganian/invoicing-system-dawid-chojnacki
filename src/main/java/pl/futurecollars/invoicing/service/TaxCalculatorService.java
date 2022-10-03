@@ -12,39 +12,39 @@ public class TaxCalculatorService {
 
   private final Database database;
 
-  public BigDecimal income(String taxIdentificationNumber) {
+  public TaxCalculatorResult calculateTaxes(String taxIdentificationNumber) {
+    return TaxCalculatorResult.builder()
+        .income(getIncome(taxIdentificationNumber))
+        .costs(getCosts(taxIdentificationNumber))
+        .earnings(getEarnings(taxIdentificationNumber))
+        .incomingVat(getIncomingVat(taxIdentificationNumber))
+        .outgoingVat(getOutgoingVat(taxIdentificationNumber))
+        .vatToReturn(getVatToReturn(taxIdentificationNumber))
+        .build();
+  }
+
+  private BigDecimal getIncome(String taxIdentificationNumber) {
     return database.visit(sellerPredicate(taxIdentificationNumber), InvoiceEntry::getPrice);
   }
 
-  public BigDecimal costs(String taxIdentificationNumber) {
+  private BigDecimal getCosts(String taxIdentificationNumber) {
     return database.visit(buyerPredicate(taxIdentificationNumber), InvoiceEntry::getPrice);
   }
 
-  public BigDecimal incomingVat(String taxIdentificationNumber) {
+  private BigDecimal getIncomingVat(String taxIdentificationNumber) {
     return database.visit(sellerPredicate(taxIdentificationNumber), InvoiceEntry::getVatValue);
   }
 
-  public BigDecimal outgoingVat(String taxIdentificationNumber) {
+  private BigDecimal getOutgoingVat(String taxIdentificationNumber) {
     return database.visit(buyerPredicate(taxIdentificationNumber), InvoiceEntry::getVatValue);
   }
 
-  public BigDecimal getEarnings(String taxIdentificationNumber) {
-    return income(taxIdentificationNumber).subtract(costs(taxIdentificationNumber));
+  private BigDecimal getEarnings(String taxIdentificationNumber) {
+    return getIncome(taxIdentificationNumber).subtract(getCosts(taxIdentificationNumber));
   }
 
-  public BigDecimal getVatToReturn(String taxIdentificationNumber) {
-    return incomingVat(taxIdentificationNumber).subtract(outgoingVat(taxIdentificationNumber));
-  }
-
-  public TaxCalculatorResult calculateTaxes(String taxIdentificationNumber) {
-    return TaxCalculatorResult.builder()
-        .income(income(taxIdentificationNumber))
-        .costs(costs(taxIdentificationNumber))
-        .earnings(getEarnings(taxIdentificationNumber))
-        .incomingVat(incomingVat(taxIdentificationNumber))
-        .outgoingVat(outgoingVat(taxIdentificationNumber))
-        .vatToReturn(getVatToReturn(taxIdentificationNumber))
-        .build();
+  private BigDecimal getVatToReturn(String taxIdentificationNumber) {
+    return getIncomingVat(taxIdentificationNumber).subtract(getOutgoingVat(taxIdentificationNumber));
   }
 
   private Predicate<Invoice> sellerPredicate(String taxIdentificationNumber) {
