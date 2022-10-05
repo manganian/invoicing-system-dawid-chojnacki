@@ -28,4 +28,33 @@ public class TaxCalculatorResult {
 
   @ApiModelProperty(value = "Outstanding VAT (calculated by application)", required = true, example = "720")
   private final BigDecimal vatToReturn;
+
+  @ApiModelProperty(value = "incomeMinusCosts (calculated by application)", required = true, example = "720")
+  private final BigDecimal incomeMinusCosts;
+
+  @ApiModelProperty(value = "pensionInsurance (calculated by application)", required = true, example = "720")
+  private final BigDecimal pensionInsurance;
+
+  @ApiModelProperty(value = "incomeMinusCostsMinusPensionInsurance (calculated by application)", required = true, example = "500")
+  private final BigDecimal incomeMinusCostsMinusPensionInsurance;
+
+  @ApiModelProperty(value = "incomeMinusCostsMinusPensionInsuranceRounded (calculated by application)", required = true, example = "400")
+  private final BigDecimal incomeMinusCostsMinusPensionInsuranceRounded;
+
+  @ApiModelProperty(value = "incomeTax (calculated by application)", required = true, example = "5500")
+  private final BigDecimal incomeTax;
+
+  @ApiModelProperty(value = "healthInsurancePaid (calculated by application)", required = true, example = "85")
+  private final BigDecimal healthInsurancePaid;
+
+  @ApiModelProperty(value = "healthInsuranceToSubtract (calculated by application)", required = true, example = "854")
+  private final BigDecimal healthInsuranceToSubtract;
+
+  @ApiModelProperty(value = "incomeTaxMinusHealthInsurance (calculated by application)", required = true, example = "851")
+  private final BigDecimal incomeTaxMinusHealthInsurance;
+
+  @ApiModelProperty(value = "healthInsuranceToSubtract (calculated by application)", required = true, example = "458")
+  private final BigDecimal finalIncomeTax;
+
+
 }
