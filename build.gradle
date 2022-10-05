@@ -58,15 +58,6 @@ checkstyle {
 }
 
 jacocoTestCoverageVerification {
-
-
-    afterEvaluate {
-        classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude:  [ 'pl/futurecollars/invoicing/controller/tax/*',
-                                          'pl/futurecollars/invoicing/service/TaxCalculatorService.class'])
-        }))
-    }
-
     violationRules {
         rule {
             limit {
